@@ -85,47 +85,26 @@ export function Agora() {
 				await client.join(options.appId, options.channel, options.token, options.uid)
 				console.log('join')
 
-				if (window.device && window.device.platform === 'iOS') {
-					const devices = await navigator.mediaDevices.enumerateDevices()
-					const cameraId = devices.find(d => d.kind.startsWith('video'))?.deviceId
-					console.log('cameraId = ' + cameraId)
-					const microphoneId = devices.find(d => d.kind.startsWith('audio'))?.deviceId
-					console.log('audioId = ' + microphoneId)
+				// Create a local audio track from the audio sampled by a microphone.
+				const audioTr = await AgoraRTC.createMicrophoneAudioTrack()
+				// Create a local video track from the video captured by a camera.
+				console.log('audioTr')
+				const videoTr = await AgoraRTC.createCameraVideoTrack()
+				console.log('videoTr')
+				// Publish the local audio and video tracks to the RTC channel.
+				await client.publish([videoTr, audioTr])
+				console.log('handleJoin publish')
 
-					const videoTr = await AgoraRTC.createCameraVideoTrack({ cameraId })
-					console.log('videoTr')
-					const audioTr = await AgoraRTC.createMicrophoneAudioTrack({ microphoneId })
-					console.log('audioTr')
-
-					await client.publish([videoTr, audioTr])
-					console.log('handleJoin publish')
-
-					if (localPlayerContainer.current) {
-						videoTr.play(localPlayerContainer.current)
-						console.log('handleJoin play')
-					}
-				} else {
-					// Create a local audio track from the audio sampled by a microphone.
-					const audioTr = await AgoraRTC.createMicrophoneAudioTrack()
-					// Create a local video track from the video captured by a camera.
-					console.log('audioTr')
-					const videoTr = await AgoraRTC.createCameraVideoTrack()
-					console.log('videoTr')
-					// Publish the local audio and video tracks to the RTC channel.
-					await client.publish([videoTr, audioTr])
-					console.log('handleJoin publish')
-
-					// Play the local video track.
-					// Pass the DIV container and the SDK dynamically creates a player in the container for playing the local video track.
-					if (localPlayerContainer.current) {
-						videoTr.play(localPlayerContainer.current)
-						console.log('handleJoin play')
-					}
-
-					setLocalAudioTrack(audioTr)
-					setLocalVideoTrack(videoTr)
+				// Play the local video track.
+				// Pass the DIV container and the SDK dynamically creates a player in the container for playing the local video track.
+				if (localPlayerContainer.current) {
+					videoTr.play(localPlayerContainer.current)
+					console.log('handleJoin play')
 				}
+				setLocalAudioTrack(audioTr)
+				setLocalVideoTrack(videoTr)
 			}
+
 			try {
 				join()
 				console.log('publish success!')
@@ -218,44 +197,6 @@ export function Agora() {
 					console.log('error', e)
 			}
     }, [client, AgoraRTC, remotePlayerContainer])
-
-    useEffect(() => {
-			if (window.device) {
-				if (window.device.platform === 'Android') {
-					cordova.plugins.permissions.requestPermissions([
-						cordova.plugins.permissions.CAMERA, cordova.plugins.permissions.RECORD_AUDIO, cordova.plugins.permissions.MODIFY_AUDIO_SETTINGS, cordova.plugins.permissions.WRITE_EXTERNAL_STORAGE
-					], () => console.log('permissions success'), () => console.log('permissions error'))
-				}
-				if (window.device.platform === 'iOS') {
-					// const { iosrtc } = cordova.plugins
-					// // Connect 'iosrtc' plugin, only for iOS devices
-					// iosrtc.registerGlobals()
-					// // Use speaker audio output
-					// iosrtc.selectAudioOutput('speaker')
-					// // Request audio and/or camera permission if not requested yet
-					// iosrtc.requestPermission(true, true, function (permissionApproved: any) {
-					// 		console.log('requestPermission status: ', permissionApproved ? 'Approved' : 'Rejected')
-					// })
-					// // Refresh video element
-					// window.addEventListener('orientationchange', () => iosrtc.refreshVideos())
-					// window.addEventListener('scroll', () => iosrtc.refreshVideos())
-
-					// window.audioinput.checkMicrophonePermission(function (hasPermission) {
-					//     if (hasPermission) {
-					//         console.log('We already have permission to record.')
-					//     } else {
-					//         // Ask the user for permission to access the microphone
-					//         window.audioinput.getMicrophonePermission(function (hasPermission, message) {
-					//             if (hasPermission) {
-					//                 console.log('User granted us permission to record.')
-					//             } else {
-					//                 console.warn('User denied permission to record.')
-					//             }
-					//         })
-					//     }
-				}
-			}
-    }, [])
 
     return (
 			<div>

@@ -33,6 +33,12 @@ module.exports = {
     hotOnly: true,
     host: '0.0.0.0',
     publicPath: '/dist',
+    disableHostCheck: true,
+    // headers: { 'Access-Control-Allow-Origin': '*' },
+    // https: {
+    //     key: fs.readFileSync('../hogangnono/nginx/conf/dev_ssl/privkey.pem'),
+    //     cert: fs.readFileSync('../hogangnono/nginx/conf/dev_ssl/fullchain.pem')
+    // },
   },
   plugins: [new webpack.HotModuleReplacementPlugin()]
 }
